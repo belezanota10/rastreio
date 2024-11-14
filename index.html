@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreio de Pedido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .input-rastreio {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .button-rastreio {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .status {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Acompanhe seu Pedido</h1>
+    <p>Digite o código de rastreio abaixo para verificar o status do seu pedido:</p>
+    
+    <input type="text" id="codigoRastreio" class="input-rastreio" placeholder="Digite o código de rastreio">
+    <select id="transportadora" class="input-rastreio">
+        <option value="correios">Correios</option>
+        <option value="jadlog">Jadlog</option>
+        <option value="loggi">Loggi</option>
+        <option value="pac">Correios PAC</option>
+        <option value="sedex">Correios SEDEX</option>
+    </select>
+    <button class="button-rastreio" onclick="rastrearObjeto()">Rastrear Pedido</button>
+
+    <div class="status" id="statusRastreio"></div>
+
+    <script>
+        function rastrearObjeto() {
+            var codigoRastreio = document.getElementById("codigoRastreio").value;
+            var transportadora = document.getElementById("transportadora").value;
+            var url = '';
+
+            // Definindo a URL com base na transportadora
+            if (transportadora === "correios" || transportadora === "pac" || transportadora === "sedex") {
+                url = "http://api.linkcorreios.com.br/rastreamento/rastrearObjeto/" + codigoRastreio;
+            } else if (transportadora === "jadlog") {
+                url = "https://api.jadlog.com.br/rastreio/" + codigoRastreio;
+            } else if (transportadora === "loggi") {
+                url = "https://api.loggi.com.br/rastreio/" + codigoRastreio;
+            }
+
+            // Usando XMLHttpRequest simples
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        var status = data.objeto ? data.objeto[0].status : 'Status não encontrado';
+                        var detalhes = data.objeto ? data.objeto[0].detalhes : 'Detalhes não encontrados';
+                        document.getElementById("statusRastreio").innerHTML = "Status: " + status + " <br> Detalhes: " + detalhes;
+                    } else {
+                        document.getElementById("statusRastreio").innerHTML = "Erro ao rastrear. Tente novamente.";
+                    }
+                }
+            };
+            xhr.send();
+        }
+    </script>
+
+</body>
+</html>
